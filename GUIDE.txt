@@ -1,0 +1,163 @@
+//// FIRST ////
+
+git clone https://github.com/nikopueringer/CorridorKey.git
+cd CorridorKey
+uv sync
+uv pip install onnx onnxruntime
+uv pip install onnxscript
+
+Download CorridorKey_v1.0.pth https://huggingface.co/nikopueringer/CorridorKey_v1.0/resolve/main/CorridorKey_v1.0.pth
+to folder /home/pm/Documents/CATs/CorridorKey/weights
+
+//// ONNX ////
+
+Copy export_corridorkey_onnx.py to /home/pm/Documents/CATs/CorridorKey
+
+cd /home/pm/Documents/CATs/CorridorKey
+source .venv/bin/activate
+
+Note: I have only 128gb Ram I have to do this 
+
+sudo fallocate -l 64G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+sync && sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
+uv run python export_corridorkey_onnx.py --img-size 2048 --no-verify
+sudo swapoff /swapfile
+sudo rm /swapfile
+
+
+//// TensorRT engine ////
+
+Download pre-build TensorRT https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.15.1/tars/TensorRT-10.15.1.29.Linux.x86_64-gnu.cuda-13.1.tar.gz
+for Cuda 13.1 
+
+export LD_LIBRARY_PATH=/opt/TensorRT-10.15.1.29/lib:/usr/local/cuda-13.1/lib64:$LD_LIBRARY_PATH
+
+/opt/TensorRT-10.15.1.29/bin/trtexec \
+    --onnx=weights/CorridorKey_v1.0.onnx \
+    --saveEngine=weights/CorridorKey_v1.0_fp16.engine \
+    --fp16 \
+    --memPoolSize=workspace:2G
+
+
+//// Nuke node TRTCorridorKey ////
+
+export PATH=/usr/local/cuda-13.1/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:$LD_LIBRARY_PATH
+
+rm -rf build && mkdir build && cd build
+cmake .. \
+    -DNUKE_ROOT=/opt/Nuke17.0v1 \
+    -DTENSORRT_ROOT=/opt/TensorRT-10.15.1.29
+make -j8
+
+
+
+
+cd /home/pm/Documents/CATs/CorridorKey
+source .venv/bin/activate
+
+cd ~/Documents/CATs/CorridorKey
+cp /path/to/export_corridorkey_onnx.py .
+uv run python export_corridorkey_onnx.py
+
+uv run python export_corridorkey_onnx.py --img-size 1024
+
+
+OPENCV_IO_ENABLE_OPENEXR=1 uv run python test_onnx.py
+
+uv run python export_corridorkey_onnx.py --img-size 2048
+
+
+/////
+
+
+uv run python export_corridorkey_onnx.py --img-size 2048 --no-verify
+
+
+dmesg | tail -20
+
+
+sudo fallocate -l 16G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+uv run python export_corridorkey_onnx.py --img-size 2048 --no-verify
+sudo swapoff /swapfile
+sudo rm /swapfile
+
+
+sync
+sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
+free -h
+
+
+////
+
+
+sync && sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
+uv run python export_corridorkey_onnx.py --img-size 2048 --no-verify
+
+
+sync && sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
+uv run python export_corridorkey_onnx.py --img-size 2048 --no-verify
+
+
+
+sudo fallocate -l 64G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+sync && sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
+uv run python export_corridorkey_onnx.py --img-size 2048 --no-verify
+sudo swapoff /swapfile
+sudo rm /swapfile
+
+
+////
+
+
+Export complete! Next steps:
+  1. Inspect in Netron:  https://netron.app/
+  2. Build TRT engine:
+     trtexec --onnx=weights/CorridorKey_v1.0.onnx \
+       --saveEngine=weights/CorridorKey_v1.0_fp32.engine \
+       --memPoolSize=workspace:4G
+
+
+////
+
+
+/opt/TensorRT-10.15.1.29/bin/trtexec \
+    --onnx=weights/CorridorKey_v1.0.onnx \
+    --saveEngine=weights/CorridorKey_v1.0_fp16.engine \
+    --fp16 \
+    --memPoolSize=workspace:2G
+
+
+/////
+
+export LD_LIBRARY_PATH=/opt/TensorRT-10.15.1.29/lib:/usr/local/cuda-13.1/lib64:$LD_LIBRARY_PATH
+
+export LD_LIBRARY_PATH=/opt/TensorRT-10.15.1.29/lib:/usr/local/cuda-13.1/lib64:$LD_LIBRARY_PATH
+OPENCV_IO_ENABLE_OPENEXR=1 uv run python test_trt_engine.py \
+    --image /home/pm/Documents/CATs/grimes2.0001.exr \
+    --mask /home/pm/Documents/CATs/grimesA.0002.exr \
+    --engine weights/CorridorKey_v1.0_fp16.engine \
+    --img-size 2048
+
+
+/////
+
+export PATH=/usr/local/cuda-13.1/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-13.1/lib64:$LD_LIBRARY_PATH
+
+rm -rf build && mkdir build && cd build
+cmake .. \
+    -DNUKE_ROOT=/opt/Nuke17.0v1 \
+    -DTENSORRT_ROOT=/opt/TensorRT-10.15.1.29
+make -j8
+
+
