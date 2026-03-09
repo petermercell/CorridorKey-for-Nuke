@@ -106,7 +106,7 @@ Copy `TRTCorridorKey.so` to your Nuke plugin path (e.g. `~/.nuke/`).
 
 1. Create a `TRTCorridorKey` node (found under AI menu)
 2. Connect your green screen plate to the **plate** input
-3. Connect a coarse alpha hint to the **mask** input (a rough Keylight/Primatte key or AI roto works)
+3. Connect a coarse alpha hint to the **mask** input (a rough Keylight/Primatte key or AI roto works shuffle to Alpha to RGBA)
 4. Point the **Engine File** knob to your `.engine` file
 5. Set **Resolution** to match your engine (2048×2048 or 1024×1024)
 
